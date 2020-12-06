@@ -1,0 +1,251 @@
+2019.01.14
+
+(20분 지각함)
+앞에 구조체와 클래스의 차이 놓침.
+
+[Static Function]
+Member Function : 첫번째 인자로 this를 가짐. 단, 생략
+Static Function : 실제로는 Member Fuction이 아님. 클래스 외부 함수임. this를 가지지 않음. 
+		this가 없으므로 Member 참조가 불가능.
+--> this가 필요없다면, 즉, 멤버 참조가 필요없다면 Static Function으로 만들것.
+(this를 바꿀것이라면 non-const, this를 참조만 할 것이면 const Member Function)
+
+Denpendency : 변수에 대한 것과 함수에 대한것으로 두가지가 있음.
+(비유)
+상현이는 교수님 아들임. 상현이는 교수님께 dependency를 가짐. 
+수현이는 교수님 딸이 아님. 수현이는 교수님께 dependency를 가지지 않음. 가족이 아님. 같은 유전자를 가지지않음(생략된 this)
+그런데 상현이가 수현이에게 dependency를 가짐. 결혼해서 수현이가 교수님의 며느리가 됨.  
+교수님 : Class   /   상현 : Member Function	/   수현 : Static Function
+
+--> 가족끼리는 Private인 집안의 금고, 냉장고를 공유할 수 있음. 
+    가족이 아니면 집안에 들어올 수가 없음.
+수현 : Static Function _ this가 없으므로 자기 스스로는 member 참조가 불가능. 만약 아기를 낳게 되면 아기의 유전자를 통해 멤버참조 가능. 
+아기 : 별도의 인자.
+
+p18
+문씨네 며느리를 호출하려면 클래스 이름으로 호출해야함.
+
+[Static Variable]
+p20
+사실은 전역변수인데 멤버 변수인 것처럼 위장.
+변수는 선언될 때가 아니라 정의될 때 메모리 할당이 일어남.
+
+
++) static variable을 member variable로 바꾸게 되면?
+#include <iostream>
+
+using namespace std;
+
+class myclass{
+	int id;
+	int num_obj=0;
+public:
+	void assign_id(void){id=num_obj++;}
+	int get_id(void) const {return id;}
+};
+
+int main(void)
+{
+	myclass mc1, mc2;
+	
+	cout << sizeof(mc1) << ' ';
+	cout << sizeof(mc2) << endl;
+	mc1.assign_id();
+	mc2.assign_id();
+	cout << mc1.get_id() << ' ';
+	cout << mc2.get_id() << endl;
+	return 0;
+}
+
+----------------------------------------------------------------------------------
+#include <stdio.h>
+
+struct myclass{
+	int id;
+	int num_obj;
+};
+
+void assign_id(struct myclass* this)
+{
+	this->id=(this->num_obj)++;
+}
+
+int get_id(const struct myclass* this)
+{
+	return this->id;
+}
+
+int main(void)
+{
+	struct myclass mc1={0,0}, mc2={0,0};
+	
+	printf("%d ", sizeof(mc1));
+	printf("%d\n", sizeof(mc2));
+	assign_id(&mc1);
+	assign_id(&mc2);
+	printf("%d ", get_id(&mc1));
+	printf("%d\n", get_id(&mc2));
+	return 0;
+}
+
+[Friend]
+
+근데) static은 별도의 인자가 없다면 member를 참조하지 못함. 별도의 인자가 있다면 가능
+별도의 인자가 있다면 멤버로 등록하면 되지 굳이 왜 static으로 만드느냐?
+member : 1) member	2) static member
+결론 : 바람직하게 코딩했다면 결국 static은 일반 멤버를 참조할 수 없다. Static만 참조가능.
+static에 별도의 인자를 넣어서 멤버를 참조하게 하는 것은 객체지향적이지 못함.
+별도의 인자를 넣는 것은 문법적으로는 문제가 되지 않음.
+그러나 그렇게 할 바에야 member function으로 만들어야 함.
+
+< 교수님 판서 >
+void f(class A* a)	-->  void A::f(void)
+void f()		-->  static void A::f()
+		      static member만 참조		(O)
+void f(clss A* m)	--> static void A::(class A* m)	(X)
+
+p23
+protected : 뒤에 배움. 그냥 일단은 private이랑 같은 거라고 생각해둘 것.
+
+외부 함수는 원래 private은 참조 불가능, public만 참조 가능.
+클래스 전체도 friend로 등록 가능
+
+그런데 외부 함수를  friend로 참조하게 되면 this가 없으므로 별도의 인자를 통해 멤버 참조가 가능해짐.
+
+근데 얘도 별도의 인자를 줘서 멤버참조할거면 멤버로 등록하는 것이 좋지않나?
+ 일단 p23의 예는 객체지향적인 관점에서 좋은 코드는 아님. 그냥 문법적으로만 허용하는 코드
+
+결론 :
+ 클래스 A에도, 클래스 B에도 depency를 가지는 경우가 있음. 둘 다의 private참조가 가능해야하는 상황임.
+ 이 외부 함수는 어디에 멤버로 등록되어야 하나?
+ 프로그래머의 판단에 따름. 더 depency가 크다고 판단되는 클래스에 등록함.
+ 한 함수가 두개의 클래스에 멤버로 등록되는 것은 불가능하므로
+ 다른 클래스에는 friend로 등록함.
+
+둘 다에 멤버 등록안하고 friend로 등록하는 방법도 있긴 있음.
+모든 함수는 어느 한 클래스에는 멤버로 등록되어야 하는 것이 객체지향적 관점에서 바람직
+--> Encapsulation하다가 만 경우임.
+
+C++에서는 Encapsulastion을 덜 한 경우를 허용해줌. 그래서 바로 위와 같이 어느 클래스에도 속하지 않는 경우를 허용해줌.
+그러나, java는 완전한 객체지향을 지향함. 그래서 모든 함수는 어느 한 클래스에 반드시 속해야 함.
+
+단, C++도 문법적으로는 허용해주는 거지, 객체지향적 관점에서 보면 java처럼 해주는 것이 바람직함.
+(static에 별도의 인자를 주어서 멤버 참조를 가능하게 해주는 것도 같은 문제임)
+
+ 클래스 A에도, 클래스 B에도 depency를 가지는 경우가 있음. 둘 다의 private참조가 가능해야하는 상황인데,
+ 어느 한 클래스에 static으로 등록하는 것은 바보같은 코딩임. static은 어쨌거나 법적으로는 가족임.
+ 한 클래스에 static으로 등록되었다는 소리는 다른 클래스에서는 static이 될 수 없다는 말임.
+
+==> private에 대한 접근 가능성에 대한 이야기.
+ 솔직히 말하면, 객체지향적 관점에서는 static과 friend 두개 간의 차이가 거의 없음. 
+ C++에서는 두개의 차이를 만드는 상황이 존재.
+ java에선, 그런 상황이 없으므로 아예 friend가 없음.
+
+---------------------------------------------------------------------------------------------------------------------------
+
+# C++에서는 this는 예약어임. 사용불가
+
+p25
+# T(cin) == istream 	/   T(cout) == ostream	
+istream, ostream은 둘 다 구조체임. --> CBA 사용.
+
+단, 구조체는 CBV도 가능은 한데, Cin과 Cout은 내부적으로 CBV로는 동작할 수 없도록 구현 되어있음. 이건 그냥 외울 것.
+ 
+p26
+--> 이 얘기 완전히 이해하지 못함. 다시.
+멤버로 등록하려면 첫번째 인자로 쓰여야함. dependency를 가져도 해당 클래스의 인자 순서가 첫번째가 아니면 불가능
+만약 인자 순서를 바꿀수 없는 사정이 있어서 첫번째 인자로 만들수 없다면 friend로 등록.
+
+클래스 인자의 순서가 바꿀 수 없을 때
+istream과 ostream을 내가 만든  class라면 내가 멤버로 등록할텐데,,
+이미 누군가가 완성해놓은 클래스이기 때문에 외부에 둘 수 밖에 없음.
+
+--> 이 말을 한번 자아알 생각해봐. 지금은 90프로는 이해한거같은데 다시 볼 때도 그래야지
+아까 앞에서 말한 java에는 없는 C++만의 상황. 어쩔수 없는 상황임.
+
+주의) 외부정의나 내부정의나 차이가 없음.
+내부정의로 되어 있다고 해서 클래스에 속한 함수가 아님. 외부 함수임.
+
+p28
+멤버로 등록할 수 있다면 반드시 멤버로 등록하는 것이 객체지향적임.
+그러나 dependency를 가지지만 인자 순서를 바꿀 수 없게 되면 static으로 등록하는 것도 하나의 방법. 
+friend도 되고, static도 되는 경우라면 static이 더 나음.
+우선 순위 : member > static > friend
+--> 공통점 : private참조 가능
+
+friend는 외부 함수임. 호출시에 class이름을 붙이지 않음. 내부 정의시에도 당연히 마찬가지.
+# static함수는 함수호출시에 class이름을 붙여서 호출해야함
+
+< 앞에서 말한 어쩔수 없이 순서를 바꾸지 못하는 경우는? >
+
+#include <iostream>
+
+using namespace std;
+
+struct A{
+	int i;
+	double d;
+};
+
+ostream& operator<<(ostream& os, const struct A& a)
+{
+	os << a.i << ' ' << a.d;
+}
+
+int main(void)
+{
+	A a={99, 9.9};
+	
+	cout << a << endl;
+	return 0;
+}
+
+
+이런 케이스.
+인자 순서를 바꾸게 되면 cout << a 가 아니고 a << cout 이렇게 써야함.
+되긴하는데 이렇게 쓰면 불편함. 따라서 순서를 바꿀수가 없음.
++) ostream은 이미 완성된 구조체. 건드릴 수 없음. 
++) static으로 등록하게되면 클래스이름을 붙여야함. 근데 그렇게 번거롭게 쓰려고 만든게 아님. SE(문법적으로는 가능)
+따라서 operator function은 friend로 등록할 수밖에 없음.
+
+java에는 oeprator function이 없음.
+
+
+==> 이번강의 핵심 : Member   vs   Static   vs   Friend
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+

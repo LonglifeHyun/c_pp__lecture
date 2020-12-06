@@ -1,0 +1,384 @@
+2019.01.15
+
+cpp 맛보기 - 객체지향 1편
+
+[Constructor(생성자)]
+
+변수에다 값을 저장하면 다 초기화임. 처음에 초기화하는 것만 있는게 아님.
+
+클래스명과 동일한 이름의 함수를 생성가능.
+
+Constructor : 클래스의 데이터를 초기화하기 위해서 선언시 자동으로 호출되는 멤버 함수.
+1)  생성자 호출법
+2)  대입 표현법
+
+
+< Default Constructor >
+vector a;
+vector a = vector();
+
+둘 다 가능.
+기본 생성자는 함수 인자가 없음.
+함수 선언과 구분되지 않는 것처럼 보임.
+그러나 함수 선언이라면 타입을 넣어야 함. 
+# 함수의 구성요소 = 리턴 타입 + 인자 타입
+기본 생성자 호출에는 값이 들어가고 함수 선언에는 인자 타입이 들어감. 그걸로 구분함.
+그러나 인자가 없을경우에 void를 생략해도 됨. 그래서 기본 생성자 호출과 구분이 되지 않음.
+--> 표현상의 중복. 그러므로 객체지향에서는 안쓰도록 함.
+그러나 SE가 발생하지 않음. 
+(기본 생성자의 역할은 이런이런 함수가 있대~ 하고 소문내는 것임. 없는 함수를 있다고 해도 문제되지는 않음.)
+vector a;	// 객체 생성.
+a.print();	// 객체가 아닌 함수로 인식하기 때문에 SE.
+
+생성자가 없는 클래스라면 자동으로 vector(void)를 넣어줌. 
+
+< Copy Constructor >
+같은 타입의 객체를 통해 초기화 정보를 얻는 생성자.
+ex) 벡터로 벡터를 초기화 할 때
+일반적으로는 const이고, 인자는 반드시 레퍼런스 타입으로 해야함.
+
+
++) 왜 레퍼런스여야 하는가?
+
+ 레퍼런스가 아니고 CBV라고 가정해보자.
+ 벡터 객체 b를 생성함에 있어서 벡터 객체 a가 필요. 그러면서 copy constructor를 호출.
+ 그 과정에서 a가 vc에 복사됨.
+ (b를 생성하기 위해서 2번째 constructor가 호출되고 인자전달을 위해 a를 2번째 constructor의 인자로 복사된다.)
+ vector vc = a;		== 	vector vc(a);		// 두 개는 같은 표현.
+ 그럼 또 vector vc(a);에서 vc를 생성하기 위해서 2번째 constructor가 호출되어야 한다.
+ --> 무한 재귀호출이 수행됨. 그러므로 CBR방식을 쓸 수밖에 없음.
+
+ 레퍼런스라면?
+ vector& vc = a;	
+ a의 주소값이 vc에 저장되는 형태임. vc를 생성하는 것이 아니고, vc라는 포인터를 만드는 것임.
+ 그냥 포인터에다가 주소값을 저장하는 것이지 또 호출할 필요없음.
+ 생성자는 해당 구조체 변수가 생성될 때 호출되는 것.
+
+# 레퍼런스 == 포인터 : 절대 잊어서는 안되는 사실
+
+ --> 과거에는 CBV로 코딩을 하면 RE가 발생했었고, 지금은 아예 SE로 막아놓음.
+
++) CBA라면?
+T(vc) == (const) vector
+vector b(&a)에서 T(&a) == vector* 이므로 위와 타입이 다름.
+같아야 하는데 다르니까 땡!
+
+# 타입
+int a;
+const int& i = a;
+
+T(a) == int
+T(i) == const int
+
+
+< Built-in Type >
+
+A a(1,2);		// (1)
+A a = A(1,2);		// 새로운 표현. --> (2)과 표현상의 일관성 부여
+
+int b(5); 	// 새로운 표현. --> (1)과 표현상의 일관성 부여
+int b =5;	//(2)	
+
+--> Polymorphism을 구현하기 위함.
+
+# 집중 좀 하자
+
+a(5)이런식의 초기화 방식은 문장에서는 쓸 수 없음. 선언에서만 가능
+
+p43
+Member initializer
+초기화 하는 코드가 함수의 헤드와 바디 사이(목)에 존재.
+헤드옆에 :(콜론) 넣고 *생성자를 사용한 초기화.
+--> 선언과 동시에 초기화 하는 효과를 냄.
+
+class vector{
+	int x, y;
+public:
+	vector(int _x, int _y): x(_x), y(_y) {}
+};
+
+-->
+
+class vector{
+	int x(_x), y(_y);		// 이렇게 바뀌어서 생성과 동시에 초기화 되는 효과를 냄.
+public:
+	vector(int _x, int _y): x(_x), y(_y) {}
+};
+
+
++) 바디에 있으면?
+박성국이 먼저 만들어지나? 박성국의 구성요소가 먼저 만들어지나?
+구성요소가 먼저 만들어짐. 단, 박성국이 만들어질 공간확보가 제일 먼저 됨.
+바디에 초기화가 있게 되면 이미 만들어지고 나서 초기화가 됨.
+즉, 생성과 동시에 초기화 될 수가 없음.
+
+예를 들면,
+
+initializer가 목에 있는 경우 : (1) int x = _x;
+initializer가 바디에 있는 경우 : (1) int x;		(2) x = _x;
+
+
++) int a = 0;		vs		int a = int();
+int() : default value.
+# int() == 0
+# double() == 0.0
+
+class vector{
+	int x, y;
+public:
+	vector(int _x, int _y): x(), y() {}			// x와 y의 default constructor를 호출하는 것임.  
+};
+---> 비효율적인 방법이므로 이렇게 코딩하지 말 것. 자세히는 이해 못했으니까 달국이한테 물어보자.
+
+*없는 constructor를 사용한 초기화 방식은 불가함.
+*무위기본생성자 (no action) : constructor가 하나도 없을 때 자동 삽입됨.
+
+#include <iostream>
+
+using namespace std;
+
+class vector{
+	int x, y;
+public:
+	vector(int _x, int _y): x(_x), y(_y){}
+};
+
+class vec3{
+	vector vc2;
+	int z;
+public:
+	vec3(int _x, int _y, int z)
+		: vc2(_x,_y), z(_z) {}		// vc2는 여기에서밖에 초기화 할 수가 없음.
+};
+
+int main(void)
+{
+	vec3 a(1,2,3);
+	
+	return 0;
+}
+
+-----------------------------------------------------------------------------------------------------
+#include <iostream>
+
+using namespace std;
+
+class vector{
+	int x, y;
+public:
+	vector(int _x, int _y): x(_x), y(_y){}
+};
+
+class vec3{
+	vector vc2;
+	int z;
+public:
+	vec3(int _x, int _y, int z) {
+		vc2.x = _x;		// vc2는 private이므로 참조할 수 없는데 참조했으므로 일단, error.
+		vc2.y = _y;		// neck부분에 initializer가 없으므로 default constructor가 들어가는데  
+		z = _z;			// vc2는 사용자타입이므로 default value가 없음. 그래서 또 error.
+	}
+};
+
+int main(void)
+{
+	vec3 a(1,2,3);
+	
+	return 0;
+}
+
+--> 결론적으로 neck부분에밖에 초기화 불가.
+
+[Destructor]
+객체가 사라져야 할 때 사용
+constructor가 할당해놓은 메모리를 해제하는 것이 목표.
+내부적으로 포인터를 가지고 deep copy를 통해 메모리 할당을 하는 상황에 호출됨.
+
++) 
+A a(1,2);
+A b(a);
+여기서, copy constructor를 호출하는 것처럼 보임.
+이 때, copy constructor(deep copy)가 정의되어 있지 않으면 structure copy가 발동된다. 즉, shallow copy.
+--> copy constructor를 만들어놓고 shallow copy를 하면 뺨맞을 코딩임.
+
+단, deep copy와 shallow copy는 포인터가 있을 때부터 구분하는 것임. 
+   포인터도 없는데 deep인지 shallow인지 따질 필요 없음.
+
+다만 vector(const vector& vc): x(vc.x), y(vc.y) {}  
+--> 이건 굳이 따지면 shallow copy에 가까움. 구조체 복사로도 충분했던 일임. 함수 하나를 쓸 데 없이 만든 셈.
+마찬가지로, 포인터도 없는데 desturctor를 만드는 건 쓸 데 없는 일임.
+
+그러니까, copy constructor가 쓰인다는 건 포인터가 멤버로 있다는 말임. 그리고 그 포인터가 deep copy에 쓰인다는 말이고.
+--> 메모리 할당.
+
+< deep copy한 코드 > --> 이코드는 그냥 아주 외워라.
+#include <iostream>
+
+using namespace std;
+
+class iarray{
+	int* p, len;
+public:
+	iarray(int length){
+		p = new int[length];
+		len = length;
+	}
+	iarray(const iarray& ia){
+		p = new int[ia.len];
+		len = ia.len;
+		for(int i=0;i<ia.len;++i)
+			p[i] = ia.p[i];
+	}
+	~iarray(void){delete p;}
+	int& at(int i) {return p[i];}
+};
+
+int main(void)
+{
+	iarray a(2);
+	a.at(0) = 11;
+	a.at(1) = 22;
+	for(int i=0;i<2;++i)
+		cout << a.at(i) << endl;
+		
+	iarray b(a);
+	for(int i=0;i<2;++i)
+		cout << b.at(i) << endl;
+	return 0;
+}
+
+[Memory allocation]
+# NULL일 때 해제해도 되지만. NULL이 아닐 때 해제하는 것이 좋음. --> 뭔말임
+NULL이 되기전에 가리키는 놈이 없어지기 전에 메모리 해제를 해주기 위해 destructor가 필요함.
+
+new는 malloc함수와는 다르게constructor 호출 기능이 있음.
+delete는 free함수와는 다르게 destructor 호출함수를 내재하고있다.
+
+( p : 배열요소 포인터 )
+delete : destructor를 한번만 호출
+delete[] : 각각에 대해서 모든 destructor를 호출.
+그러므로 배열에서는 delete[]를 호출하는 것이 바람직.
+그냥 delete는 단일객체나 destructor가 없는 경우에 사용하는 것이 바람직. 
+	배열에 사용했다가는 dangling pointer로 인한 run-time error의 발생 위험이 있음.
+
+[Type Conversion]
+return 타입으로 int를 넣어야 하는데 프로그래머들이 자꾸 실수를 해서 
+그냥 아예 못 넣도록 바꿔놓음. 컴파일러가 대신 넣어줌. 
+그럼에도 return 타입이 int임을 알고 있어야 함.
+
+type conversion operator가 없으면 error.
+
+< 이중 묵시적 타입 변환 >
+일반적으로는 불가능.
+묵시적 타입변환은 일차적 오류가 발생할 때 발생.
+
+#include <iostream>
+
+using namespace std;
+
+class vector{
+	int x, y;
+public:
+	vector(int _x, int _y): x(_x), y(_y) {}
+	operator int(void) const{
+		return x+y;
+	}
+};
+
+class vec3{
+	vector vc2;
+	int z;
+public:
+	vec3(int _x, int _y, int _z)
+		: vc2(_x,_y), z(_z){}
+	operator vector(void) const{
+		return vc2;
+	}
+};
+
+int main(void)
+{
+	vector v1(11,22);
+	vec3 v2(1,2,3);
+	cout << int(v1) << endl;
+	cout << vector(v2) << endl;
+	cout << v2 << endl;	// 일차 오류로 벡터로 만들었고 이차오류 발생. 벡터를 int로 바꿀수 있지만 이차적 오류에서 끝내버림. 
+	
+	return 0;
+}
+------------------------------------------------------------------------------------------------------
++)
+#include <iostream>
+
+using namespace std;
+
+class A{
+	int i;
+public:
+	A(int ii): i(ii) {}
+	int get(void) const {return i;}
+	friend ostream& operator<<(ostream& os, const A& a){
+		return os << a.i;
+	}
+};
+
+class B{
+	double d;
+public:
+	B(double dd): d(dd){}
+	B(const A& a): d(double(a.get())) {}
+	double get(void) const {return d;}
+	friend ostream& operator<<(ostream& os, const B& b){
+		return os << b.d;
+	}
+};
+
+int main(void)
+{
+	A a(3);
+	cout << a.get() << endl;
+	
+	B b(3.14);
+	cout << b << endl;
+	
+	cout << B(a) << endl;		// type conversion
+	return 0;
+}
+
+-------------------------------------------------------------------------
+
+#include <iostream>
+
+using namespace std;
+
+class A{
+	int i;
+public:
+	A(int ii): i(ii) {}
+	int get(void) const {return i;}
+	friend ostream& operator<<(ostream& os, const A& a){
+		return os << a.i;
+	}
+};
+
+class B{
+	double d;
+public:
+	B(double dd): d(dd){}
+	B(const A& a): d(double(a.get())) {}
+	operator A(void){
+		return A((int)d);
+	}
+	double get(void) const {return d;}
+};
+
+int main(void)
+{
+	A a(3);
+	cout << a << endl;
+	
+	B b(3.14);
+	cout << A(b) << endl;
+	
+	return 0;
+}

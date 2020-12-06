@@ -1,0 +1,379 @@
+2019.01.04
+
+// 실습과제 EX10 ~ EX28
+
+cpp 맛보기 - 기본기능 1편
+
+p36
+[Reference]를 하기 전 기본개념
+
+PT(X) == X*
+PT(struct X) == struct X*
+PT(X[N]) == X[N]*
+
+int a[3];
+int (*p)[3];
+
+p = &a;
+
+개념적 타입
+C언어의 포인터를 이해하기 쉽도록 타입정보를 변수 앞에 모아서 표현하는 방식
+
+int a[3];	// C언어 타입 표현
+int[3] a;	// 개념적 타입 표현
+
+*개념적 타입 --> C언어 타입
+
+int[3][2]**[5]*[4]        p;	// 개념적 타입
+int[3][2]**[5]*        p[4];
+int[3][2]**      (*p[4])[5];
+int[3]    (**(*p[4])[5])[2];
+int    (**(*p[4])[5])[2][3];	// C언어 타입
+
+< 개념적 타입에서 C언어 타입으로 전환의 규칙 >
+ 1) 뒤쪽 []부터 변수 뒤로 이동
+ 2) [] 바로 뒤에 *이 없으면 그냥 이동
+ 3) *이 있으면 뒤의 내용 전체를 ()로 묶어서 []를 마지막으로 이동
+ 4) 1)~3) 반복
+
+*C언어 타입 --> 개념적 타입
+
+int    (**(*p[4])[5])[2][3];	// C언어 타입
+int[3]    (**(*p[4])[5])[2];
+int[3][2]**      (*p[4])[5];
+int[3][2]**[5]*        p[4];
+int[3][2]**[5]*[4]        p;	// 개념적 타입
+
+
+* '개념적 타입 --> C언어 타입 & C언어 타입 --> 개념적 타입'을 빠른 시간 내에 전환할 수 있도록 연습해야 함.
+
+* 읽을 때는 개념적 타입으로 읽고, 쓸 때는 C언어 타입으로 쓸 것.
+
+int a[3];
+int (*p)[3];	// int[3]* p;
+
+p = &a;	// T(a) == int[3], T(&a) == int[3]* == T(p)
+
+# 개념적 타입을 익혀두면 복잡한 포인터가 쉽게 풀린다. 따라서 중요하다.
+---------------------------------------------------------------------------------------------------------------
+[Reference]
+C++에서부터 등장
+
+int a = 7;
+int b = a;
+--> 메모리 공유X
+
+int a = 7;
+int& b = a;	// reference T(b) == int
+--> 메모리 공유 (b는 a의 별명같은 존재가 됨)
+(비유) 수현이는 별명이 빵순이임. 교수님이 빵순이에게 밥을 사주시고 수현이에게 배부르냐고 물어보심.
+	수현이는 배부르다고 함. 빵순이는 결국 수현이로 같은 사람이었기 때문.
+
+p37
+함수 인자로 사용
+void f(int& b)	// int& b = a;
+
+C언어에서는 함수 호출시 괄호 안에는 값을 넣는 것이 원칙이나, 	// Call by Value(연인)
+C++에서 함수인자에&가 있다면 reference이고, 값이 아닌 변수가 전달 됨.	// Call by Value + Call by Reference(부부)
+
+호출시에 Call by Address를 쓰지 않았음에도 Call by Reference를 사용함으로써 메모리가 공유됨.
+--> 함수 호출부만 보아서는 안되고 함수 정의부도 함께 봐야함.
+
+p38
+Reference에 대한 일반적인 개념 : 서로 다른 이름을 부여해서 같은 메모리를 지칭하게 만든다.
+그러나, 이걸로는 다 이해하지 못하는 경우가 있다.
+
+Reference 개념은 사실은, Pointer이다.
+
+a와 b는 같은 메모리 
+
+C++ Reference		==	C언어 Pointer
+------------------------------------------------------------
+int a = 3;			int a = 3;
+int& b = a;  //reference	int* pb = &a;	// pointer
+
+reference에서는 a와 b가 같은 메모리를 공유하기 때문에 4bytes 사용하고 있는 것처럼 보이지만,
+사실은 8bytes를 사용함. 
+pointer와 완전히 동일함. 
+
+(비유)
+reference : 화장한 여자친구	--> 좀 더 깔끔하고 예쁨
+pointer : 생얼인 여자친구	--> 진짜임
+
+* reference 와 pointer 간의 전환이 자유로워야 함. 연습할 것.
+
+< reference --> pointer 규칙 >
+ 1) &를 *로 바꿔라
+ 2) 타겟 앞에는 &을 붙여라
+ 3) 사용할 때는 *을 붙여라
+
+p40
+T(a) == int[3]
+
+int[3] a = {1,2,3};
+int[3]& b = a;
+
+-->
+
+int a[3] = {1,2,3};
+int (&b)[3] = a;
+
+주의)	(*pb)[1] != *pb[1]
+배열 연산자([])는 영웅 연산자로 우선순위가 제일 높기 때문
+
+# 현재 C++98에 맞춰서 배우고 있고, 주목해야할 표준은 C++11
+
+# 초창기 C++은 C언어로 변환한 뒤에 컴파일 되었다. 즉, 그당시의 모든 C++문법은 C언어로 전환될 수 있었다.
+
+* 배열 reference == 배열 pointer
+
+p41
+T(a) == int*
+즉, a는 배열이 아니라 배열 포인터이다. 그러므로 길이연산방식으로는 size를 구할 수 없다.
+# 길이 연산 방식 : sizeof(b)/sizeof(b[0])
+T(b) == int[3]
+
++)
+배열의 길이 : 요소의 개수
+배열의 크기 : 메모리 용량 
+
+#include <iostream>
+
+using namespace std;
+
+void print_len(double a[3])
+{
+	int len = sizeof(a) / sizeof(a[0]);
+	cout << len << "in print()" <<endl;
+}
+
+int main(void)
+{
+	double b[3] = {1.1,2.2,3.3};
+	int len = sizeof(b)/sizeof(b[0]);
+	
+	cout << len << "in main()" << endl;
+	
+	print_len(b);
+	return 0;
+}
+
+T(b) == double[3]
+T(a) == double* 이기 때문에 32비트 기준으로는 len == 0이 나옴. 배열길이연산을 수행한것이 무의미했다는 뜻.
+
+주의! a의 겉모습은 배열이지만 본질은 포인터이다
+
+이 때, reference를 사용하게 되면 배열 길이 연산을 사용할 수 있다.
+
+#include <iostream>
+
+using namespace std;
+
+void print_len(double (&a)[3])			// reference 사용
+{
+	int len = sizeof(a) / sizeof(a[0]);
+	cout << len << "int print()" <<endl;
+}
+
+int main(void)
+{
+	double b[3] = {1.1,2.2,3.3};
+	int len = sizeof(b)/sizeof(b[0]);
+	
+	cout << len << "int main()" << endl;
+	
+	print_len(b);
+	return 0;
+}
+
+p43
+pointer로 고쳐서 확인해보면 됨
+왼쪽 빈칸 : int* p = &x;
+오른쪽 빈칸 : int* p = &3;	// &3은 잘못된 것임. 앞에서 배움.
+		--> SE
+
+p44
+Reference를 사용하고 있지만 사실은 Pointer라고 생각해야함
+Call by Reference에서는 함수호출시에 값이 아닌 변수를 넣어야 하는데 값을 넣게 되면 SE.
+Pointer로 해석하면 알게 됨.
+
+p45
+왼쪽
+const int* p = &x;로 고쳐서 pointer로 재해석.
+
+x는 바뀌어도 되는 것으로 간주, r은 바뀌면 안되는 것으로 간주
+타입 mismatch 이지만 허용. 
+(비유)
+수현이의 별명은 빵순이임
+수현이는 남자친구가 없는 사람으로 생각하고 
+빵순이는 남자친구가 있는 사람으로 생각함
+--> 수현이한테는 남자소개를 해줘도 되고, 빵순이한테는 안됨
+
+오른쪽
+const int* r = &3; // &3때문에 안될 것 같지만 예외적으로 됨
+3이 값이 변수가 된다면 해결되는 문제임. 
+
+const int& r = 3;를 다음과 같이 변환시켜서 컴파일 함.
+
+const int tmp = 3;	// compiler가 임시변수 삽입
+const int* p = &tmp;
+
+따라서 No Error
+
+const 타입에 대한 reference를 사용할때에만 제한 됨.
+
+# compiler가 삽입한 임시변수 수명은 그때그때 달라짐.
+
+p46 오른쪽
+const int tmp = 3;
+x = inc( &tmp );
+
+--> const int* p = &tmp;
+
+===========================================================================================================
+p43
+#include <iostream>
+
+using namespace std;
+
+int main(void)
+{
+	int x = 3;
+	int& r = x; 	// int* p = &x;
+	
+	++r;
+	cout << x << endl;
+	return 0;
+}
+------------------------------------------
+#include <iostream>
+
+using namespace std;
+
+int main(void)
+{
+	int x = 3;
+	int& r = 3; 	// int* p = &;
+	
+	++r;
+	cout << x << endl;
+	return 0;
+}
+
+==> SE
+
+p44
+#include <iostream>
+
+using namespace std;
+
+void inc(int& r)	//int* p = &x;
+{
+	++r;
+}
+
+int main(void)
+{
+	int x = 3;
+	
+	inc(x);	//	inc(&x);
+	cout << x << endl;
+	return 0;
+}
+---------------------------------------------
+#include <iostream>
+
+using namespace std;
+
+void inc(int& r)	//int* p = &3;
+{
+	++r;
+}
+
+int main(void)
+{
+	int x = 3;
+	
+	inc(3);	//	inc(&3);
+	cout << x << endl;
+	return 0;
+}
+
+==> SE
+
+p45
+#include <iostream>
+
+using namespace std;
+
+int main(void)
+{
+	int x = 3;
+	
+	const int& r = x;	// const int* r = &x;
+	
+	// ++r;	// impossible
+	x = r+1;
+	cout << x << endl;
+	return 0;
+}
+----------------------------------------------------------
+#include <iostream>
+
+using namespace std;
+
+int main(void)
+{
+	int x = 3;
+						//const int tmp = 3;
+	const int& r = 3;	// const int* p = &tmp;
+	
+	// ++r;	// impossible
+	x = r+1;
+	cout << x << endl;
+	return 0;
+}
+
+p46
+#include <iostream>
+
+using namespace std;
+
+int inc(const int& r) 	// const int* p = &x;
+{
+	// ++r;		// impossible
+	return r+1;
+}
+
+int main(void)
+{
+	int x = 3;
+
+	x = inc( x );	// inc( &x );
+	cout << x << endl;
+	return 0;
+}
+-------------------------------------------------------
+#include <iostream>
+
+using namespace std;
+
+int inc(const int& r) 	// const int* p = &tmp;
+{
+	// ++r;		// impossible
+	return r+1;
+}
+
+int main(void)
+{
+	int x = 3;
+					// const int tmp = 3;
+	x = inc( 3 );	// inc( &tmp );
+	cout << x << endl;
+	return 0;
+}
+
+
+
+
+

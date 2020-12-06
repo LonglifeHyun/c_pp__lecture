@@ -1,0 +1,531 @@
+20190121_(2)
+
+cpp 맛보기 - 객체지향 3편(STL)_뒷부분
+
+[Element Access Method]
+(엄청 중요) --> 기말
+p20
+SE를 해결하기 위해 const와 non-const모두에 대한 경우를 만들어줘야 함.
+
+# 이해가 되고 안되고의 문제는 C언어로 전환해보면 쉽게 이해할 수 있음.
+ 단, C언어로 전환하는 것이 익숙하고 숙달돼있어야 함.
+(비유) 운전을 할 때, 차선 맞추고 속도 조절하는 것이 연습이 되어 있지 않으면 정작 중요한 신호를 보지 못함.
+
+p23
+int니까 RBV를 썼지만
+구조체라면 const RBR가 더 효과적.
+
+p24
+두 함수가 같은 이름에 대해서 overloading이 되어 있어야 가능해짐.
+
+p26
+Iterator에서 주의) End는 끝 요소가 아니라 마지막+1을 가리킴.
+
+p28
+iterator 즉, (요소)포인터에 대해서 허용되는 연산들
+: =, ==, !=, *, ++, -- 
+
+iterator : 구조체인데 그 안에 요소를 가짐. shallow copy
+  --> 본질은 구조체인데, int*을 흉내내는 가상으로 만든 클래스
+
+p30
+const iterator : 가리키는 대상을 const 즉, 바뀌면 안되는 것으로 보는 요소 포인터
+
+iterator의 목표
+: 마치 자기가 요소 포인터인것처럼 기능을 하는 구조체가 되자!
+
+# 비슷한 예로,
+ 구조체인데 배열처럼 --> 배열 객체 
+ 구조체인데 함수처럼 --> 함수 객체
+
+<다음의 코드들은 반드시 백지코딩으로 암기하다시피 해둘 것>
+
+p28
+#include <iostream>
+
+using namespace std;
+
+class farray{
+public:
+	typedef int* iter;
+private:
+	int p[3];
+public:
+	iter begin(void){
+		return &p[0];
+	}
+	iter end(void){
+		return &p[3];
+	}
+};
+
+int main(void)
+{
+	farray a;
+	int i=0;
+	for(farray::iter it=a.begin();it!=a.end();++it)
+		*it = (++i)*11;
+	for(farray::iter it=a.begin();it!=a.end();++it)
+		cout << *it << endl;
+	
+	return 0;
+}
+-----------------------------------------------------------------
+p29
+#include <iostream>
+
+using namespace std;
+
+class farray{
+public:
+	class iter{
+		int * ptr;
+	public:
+		iter(int* p): ptr(p) {}
+		bool operator!=(const iter& it) const{
+			return ptr!=it.ptr;
+		}
+		int& operator*(void) const{
+			return *ptr;
+		}
+		iter& operator++(void){
+			++ptr;
+			return *this;
+		}
+	};
+private:
+	int p[3];
+public:
+	iter begin(void){
+		return iter(&p[0]);
+	}
+	iter end(void){
+		return iter(&p[3]);
+	}
+};
+
+int main(void)
+{
+	farray a;
+	int i=0;
+	for(farray::iter it=a.begin();it!=a.end();++it)
+		*it = (++i)*11;
+	for(farray::iter it=a.begin();it!=a.end();++it)
+		cout << *it << endl;
+	
+	return 0;
+}
+-----------------------------------------------------------------
+p30
+#include <iostream>
+
+using namespace std;
+
+class farray{
+public:
+	typedef int* iter;
+	typedef const int* citer;
+private:
+	int p[3];
+public:
+	iter begin(void){
+		return &p[0];
+	}
+	iter end(void){
+		return &p[3];
+	}
+	citer begin(void)const{
+		return &p[0];
+	}
+	citer end(void)const{
+		return &p[3];
+	}
+};
+
+int main(void)
+{
+	farray a;
+	int i=0;
+	for(farray::iter it=a.begin();it!=a.end();++it)
+		*it = (++i)*11;
+	const farray b(a);
+	for(farray::citer cit=b.begin();cit!=b.end();++cit)
+		cout << *cit << endl;
+	
+	return 0;
+}
+-----------------------------------------------------------------
+p31
+#include <iostream>
+
+using namespace std;
+
+class farray{
+public:
+	class citer{
+		const int * ptr;
+	public:
+		citer(const int* p): ptr(p) {}
+		bool operator!=(const citer& cit) const{
+			return ptr!=cit.ptr;
+		}
+		const int& operator*(void) const{
+			return *ptr;
+		}
+		citer& operator++(void){
+			++ptr;
+			return *this;
+		}
+	};
+	class iter{
+		int * ptr;
+	public:
+		iter(int* p): ptr(p) {}
+		bool operator!=(const iter& it) const{
+			return ptr!=it.ptr;
+		}
+		int& operator*(void) const{
+			return *ptr;
+		}
+		iter& operator++(void){
+			++ptr;
+			return *this;
+		}
+	};
+private:
+	int p[3];
+public:
+	citer begin(void)const{
+		return citer(&p[0]);
+	}
+	citer end(void)const{
+		return citer(&p[3]);
+	}
+	iter begin(void){
+		return iter(&p[0]);
+	}
+	iter end(void){
+		return iter(&p[3]);
+	}
+};
+
+int main(void)
+{
+	farray a;
+	int i=0;
+	for(farray::iter it=a.begin();it!=a.end();++it)
+		*it = (++i)*11;
+		
+	const farray b(a);
+	for(farray::citer cit=b.begin();cit!=b.end();++cit)
+		cout << *cit << endl;
+	
+	return 0;
+}
+-----------------------------------------------------------------
+[Predicate - Function]
+p32
+#include <iostream>
+
+using namespace std;
+
+struct V {int x,y;};
+
+bool gt(const V& v1, const V& v2)
+{
+	return v1.x > v2.x || v1.x == v1.x == v2.x && v1.y > v2.y;
+}
+
+typedef bool(*pred_t)(const V&, const V&);
+
+V maxv(const V& a, const V& b, const pred_t& cmp)
+{
+	return cmp(a,b) ? a : b;
+}
+
+ostream& operator<<(ostream& os, const V& v)
+{
+	return os << v.x << ' ' << v.y;
+}
+
+int main(void)
+{
+	V v1 = {1,2};
+	V v2 = {2,1};
+	
+	cout << maxv(v1,v2,gt) << endl;
+	return 0;
+}
+---------------------------------------------------------------------------
+p33
+#include <iostream>
+
+using namespace std;
+
+struct V {int x,y;};
+
+class gt{
+public:
+	bool operator()(const V& v1, const V& v2) const{ 	
+		return v1.x > v2.x || v1.x == v1.x == v2.x && v1.y > v2.y;
+	}
+};
+
+V maxv(const V& a, const V& b, const gt& cmp)
+{
+	return cmp(a,b) ? a : b;
+}
+
+ostream& operator<<(ostream& os, const V& v)
+{
+	return os << v.x << ' ' << v.y;
+}
+
+int main(void)
+{
+	V v1 = {1,2};
+	V v2 = {2,1};
+	
+	cout << maxv(v1,v2,gt()) << endl;
+	return 0;
+}
+---------------------------------------------------------------------------------
+p34는 위를 template으로 만든 것.
+=================================================================================
+p.35 ~ 
+요소 포인터 iterator --> template : 모두 백지 코딩해볼 것.
+
+container : 여러개의 값들을 저장하는 공간 
+iterator : container에서 각 요소들을 참조하기 위한 포인터
+
+p40
+(1)
+*dst = a;
+dst = dst + 1;
+
+(2)
+*dst++ = a; 	
+
+--> (1) 과 (2) 는 같은 표현임?
+* 와 ++ 둘다 애꾸눈 연산자. 우선순위가 같음.
+우선순위가 동일할 때 결합순서는 연산자마다 왼쪽에서부터 할 지, 오른쪽에서부터 할 지 정해져있음.
+
+< 결합순서 >
+4칙연산의 경우, 왼쪽이 우선. ex) 1 + 2 + 3
+대입 연산자의 경우, 오른쪽이 우선. ex) a = b = c = 3;
+&*p 의 경우, 오른쪽이 우선. &*p == &(*p)
+
+(정리)
+대부분의 결합순서는 왼쪽에서부터.
+예외 세가지 : 애꾸눈, 대입연산자, 조건연산자
+
+==> *dst++ = a;은 다음과 같이 계산이 됨.
+ 1) *(dst++) = a;
+ 2) *dst = a;
+ 3) dst++;
+
+[ostream_iterator]
+osit : cout에 대한 iterator(요소포인터)임
+cout을 하나의 데이터 저장 장소 즉, container로 봄.
+
++) delimeter 
+	: " ", 혹은 ", " 을 넣어서 데이터를 구분해줌.
+
+iterator에 왜 내부적으로 자체 ++하는 기능이 있어야 할까?
+cout 의 경우 한번 출력한 것을 취소하고 되돌릴 수 없음.
+*osit1 = 11;을 하는 순간에 자동으로 22가 들어가게 됨.
+오히려 따로 ++하는 기능을 구현하지를 못함. --> ++의 기능을 제한하고 내재하는 것으로 함.
+
+--> copy로 출력이 됨.
+
+-------------------------------------------------------------------------------------------------------
++) 
+< ostream_iterator (iterator adaptor) 구현_prf.moon >
+
+#include <iostream>
+#include <cstring>
+
+using namespace std;
+
+class my_os_iter{
+	ostream& cont;
+	char delimeter[1024];
+public:
+	my_os_iter(ostream& os, const char* dt = "")
+		:cont(os) {
+		strcpy(delimeter,dt);
+	}
+	my_os_iter& operator*(void){		// no action
+		return *this;
+	}
+	my_os_iter& operator=(int v){
+		cont << v;
+	}
+	my_os_iter& operator++(void){		// no action
+		return *this;
+	}
+	my_os_iter operator++(int){		// no action. 후치와 구분하기 위해서 그냥 인자로 변수 없이 int를 넣음. 
+		return my_os_iter(*this);
+	}
+};
+
+int main(void)
+{
+	my_os_iter osit1(cout);
+	*osit1 = 11;
+	*osit1 = 22;
+	*osit1 = 33;
+	cout << endl;
+	
+	return 0;
+}
+
++) double타입에 대해서도 하고 싶다면 template이용.
+------------------------------------------------------------------------------------------------------------------------
+(비유) 성국이는 교수님 말을 잘 듣지 않음. 그러나 수현이 말은 잘 들음. 수현이를 통해 성국이를 조작할 수 있음.
+ 	  교수님 : 외부 --> 성국이에 대한 접근 권한이 없음. 성국 : 구성요소 , 수현 : iterator
+ 	
+	상현이는 교수님의 iterator임. 그러나 진짜 iterator가 아니라, iterator인 것처럼 행세를 하는 것임.
+	cout의 멤버에 접근할 수가 없음. 겉으로는 조작하는 것처럼 행동하나 사실은 부탁해서 겨우겨우 함.
+	상현 : ostream_iterator로서 iterator의 효과를 냄.
+( 이런거까진 기말 범위는 아님. )
+
+copy는 이미 algorithm에 구현이 되어 있음. 그냥 그거 사용하도록.
+단, 내부 구현을 알고는 있어야지.
+
+
+[istream_iterator (istream iterator adapter)] 
+
++) 구현_prf.moon
+
+class is_iter{
+	istream& cont;
+	int v;
+public:
+	is_iter(istream& is): cont(is) {
+		cont >> v;
+	}
+	operator*(void){
+		return v;
+	}
+	is_iter& operator++(void){
+		cont >> v;
+		return *this;
+	}
+	is_iter& operator++(int){
+		is_iter temp(*this);
+		cont >> v;
+		return temp;
+	}
+};
+--------------------------------------------------------------------------------------------------------
++) != 연산자도 만들어야 함. 기본으로 만들어져 있어야 함( p != end 에 쓰임)
+
+# typename이 너무 길면 typedef을 통해서 짧게 만들어놓고 코딩할 것.
+============================================================================================================
+
+[Container]
+	: 데이터 컬렉션. private을 참조하지 못하므로 iterator를 통해서 참조.
+
+sequencial container : vector, list, deque
+associative container : set, map
++) STL2 _ Unordered container
+
+--> iterator는 어떤 유형의 container에도 적용 가능. 즉, 모든 알고리즘을 구동하기 위한 방법임.
+
+기억해야할 container와 알고리즘이 얼마 안됨 --> 외우기 쉬움. --> STL의 목표
+
+# java는 아님. 너어어어어무 많아서 library를 더 많이 아는 사람이 java를 잘하는 사람임.
+
+모든 container끼리의 copy는 deep copy로 이루어짐. 
+비효율적이긴 해도 한쪽이 수정되었을때 side effect를 발생시키지 않으므로 안전함.
+
+iterator를 잘못 사용하면 RE이 발생할 위험이 있으므로 주의해서 사용해야함.
+
+[Vector]
+<constructor>
+기본적으로 알아야 할  constructor는 4개. (default, size, size_value, copy) 
++a  (beg-end)
+
+# vector<int>의 return 타입은 iterator일수도 있고, 구조체 일수도 있다. STL 개발자 마음임. 주로 구조체임.
+
+<reverse iterator>
+기본적으로 함수는 앞에서부터 뒤로가는 순으로 구현이 되어있음.
+iterator에 ++을 내재하고 있음.
+반대로 구현되어있는 함수를 쓰고싶다면 --를 사용하는 iterator를 따로 만들어야함. 
+--> Reverse iterator : 역방향처리하는 iterator
+
+<insertion>
+iterator가 가리키는 곳부터 그뒤를 밀어내고 새로운 데이터를 삽입하는 멤버 함수 중 하나.
+
+<push_back>
+<erase>
+<pop_back>
+<resize>
+ clear와 같은 말.
+<swap>
+ 포인터 주소값 교환. 속도가 엄청 빠름.
+<shrink capacity>
+ swap으로 구현할 수 있는데, 프로그래머들이 너무 모르니까 아예 만들어버림
+<clear>
+<constant iterator>
+===============================================================================================================
+[문자열의 활용]
+넉넉하게 잡아도 RE발생가능. --> 불안전.
+--> string 클래스를 만듦. 
+--> 필요에 따라 size가 자동으로 늘어남
+char타입의 배열을 쓰는 것보다 효과적.  
+
++) 유용한 functions도 지원. 
+
+# map은 시험범위 제외.
+
+[istringstream & ostringstream]
+문자열 123을 정수 123으로 바꾸고 싶다몀ㄴ? 혹은 그 반대라면? 이 때 사용하는 것.
+string을 inputstream으로 취급하게 만들어주는 기능.
+소스코드 중요!
+# <sstream>을 include해야함
+#include <iostream>
+#include <string>
+#include <sstream>
+
+using namespace std;
+
+void string_to_int(const string& s)
+{
+	istringstream iss(s);
+	int a, b, c;
+	iss >> a >> b >> c;
+	cout << "a==" << a << endl;
+	cout << "b==" << a << endl;
+	cout << "c==" << a << endl;
+}
+
+string int_to_string(int a, int b, int c)
+{
+	ostringstream oss;
+	oss << a << ' ';
+	oss << b << ' ';
+	oss << c;
+	return oss.str();
+}
+
+int main(void)
+{
+	int a = 1;
+	int b = 2;
+	int c = 3;
+	string s = int_to_string(a,b,c);
+	cout << "s==" << s << endl;
+	string_to_int(s);
+	return 0;
+}
+-----------------------------------------------
+[matrix활용]
+소스코드 중요--> 시험.
+완전히 숙지!
+
+[sort algorithmd의 활용]
+이것도 소스코드 중요--> 시험
+====================================================================================================
+(종강)

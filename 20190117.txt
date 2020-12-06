@@ -1,0 +1,500 @@
+2019.01.17
+
+cpp 맛보기 - 객체지향 2편
+
+[Inheritance]
+캡슐화의 결과로 너무 많은 그룹들이 생성됨.
+그 그룹들간에는 또 공통점이 있음. 그 공통점을 기준으로 또 그룹화 --> 상속
+공통된 부분 : base class
+base class를 기준으로 복잡한 내용을 단순하게 인지 가능.
+
+p2
+Derived(==Child, Sub) Class  --|> Base(==Parent, Super) Class
+주의) 용어에는 짝이 있음.
+
+p4
+메모리구조를 이해할 것.
+
+p5
+Base Class 초기화
+상속에서는,
+vec2에 대한 영역이 존재하기는 하지만 그를 지칭하는 변수이름이 존재하지 않으므로 class이름을 사용함.
+앞에서 배운 객체 선언에서는 
+vec2 vc2로 객체를 선언해서 vc2를 통해 초기화가 가능했음.
+
+[Overriding]
+id라는 변수이름이 중복이 됨.
+
+(비유) 아빠한테서 청바지를 받음. 내꺼도 따로 있음.
+엄마가 청바지 빨게 가져와! 하면 내꺼를 줌.
+아빠꺼는 base class::id로 지칭
+
+p6
+이 코드에서는 id > 0이어야 의미를 갖는 코드임. 
+조건을 만족하지 못하면 아빠 청바지를 갖다줌.
+
+p7
+함수 이름이 같음. 함수의 반환 타입과 인자타입이 같기 때문에 overloading 이 아닌 overriding으로 간주.
+# overloading은 인자타입이 다름.
+
+p8
+multi inheritance : 2개 이상의 base class로부터 상속을 받음.
+
+p9
+# 클래스에서 멤버 변수들은 클래스에 대해 포함관계이고, 멤버 함수들은 클래스에 대해 의존관계임.
+ 그렇다면 멤버 함수들은 클래스에 포함되어 있는 것인가? 
+ 아니다. 의존하고 있을 뿐, 포함된 것이 아님.
+
+class A{
+	int a, b;
+	double d;
+public:
+	void f(void){}
+	void g(void){}
+};
+
+A v;
+v.a, v.b, v.c는 v에 포함된다.
+v.f(), v.g()는 v에 의존한다. (!= 포함)
+
+(비유)
+성국이는 교수님에 의존해서 음료수를 사오는 함수이지만 교수님 자체는 아님. 즉, 포함관계가 아님.
+교수님의 팔, 다리는 교수님의 구성요소로서 교수님에 포함관계임.
+ 
+class A{
+	int a, b;
+	double d;
+};
+
+void f(class A* this){}		
+void g(class A* this){}		
+
+A v;
+
+이렇게 보면 포함되지 않음이 명확함.
+--> 그러나 저~ 위와 같이 클래스안에 넣어놓으면 포함되는 줄 착각 할 수도 있음. 착각하지 말 것.
+
+--> 메모리 구조를 생각할 때 함수는 영향을 주지 않음. 변수만 생각하면 됨.
+
+p1 : d의 메모리 영역중에 base1에 해당하는 부분만의 주소를 가리킴.
+p2 : d의 메모리 영역중에 base2에 해당하는 부분만의 주소를 가리킴.
+
+&d == E0
+p1에는 E0가 저장,
+p2에는 E4가 저장,	// E0이 저장된다고 착각하지 않도록 할 것.
+p3에는 E0가 저장.
+
+(비유)
+성국이를 가리킨다 == 성국이의 머리를 가리킴.		(p3)
+성국이의 일부분을 가리킨다 == 성국이의 머리를 가리킴.	(p1)
+성국이의 심장을 가리킨다 == 성국이의 심장을 가리킴.	(p2)
+
+up-casting : derived class*에서 base class*로의 타입 변환. SAFE
+참조타입이 일치하지 않을 경우에는 명시적으로 타입 변환을 하는 것이 원칙이나,
+base class로 up-casting하는 경우에는 예외적으로 타입 캐스팅을 명시적으로 하지 않아도 됨.
+
+# 복습-----------------------------------------------------------------------------------------------------
+ int a = 3.14;
+ int a = (int)3.14; 	// 묵시적 변환, 데이터 손실 발생O --> 불안전한 타입 전환
+ --> 컴파일러 입장에서는 프로그래머의 의도인지 실수인지 구분할 수 없음. 
+ 실수한 것이라면 위험한 상황임. --> 묵시적 타입 변환을 해주긴 하지만 warning을 날림. 즉, 바람직하지 않음.  
+
+ double b = 3;
+ double b = (double) 3;	// 묵시적 변환, 데이터 손실 발생X --> 안전한 타입 전환
+ --> 컴파일러 입장에서는 프로그래머의 의도인지 실수인지 구분할 수 없음. 
+ 실수한 것이라도 위험하지 않은 상황임. --> 묵시적 타입 변환을 해주고 warning을 날리지 않음. 즉, 바람직함.
+
+참조타입이 다를 때 의도치 않았다면, 위험한 상황인지 아닌지를 판단해야함.
+너무 위험한 상황이라면 SE처리.
+
+double* p;
+int* q;
+
+p = q;
+q = p;	
+--> 둘 다 안전하지 못한 경우임.
+ 해석도 이상하게 될 뿐만 아니라 경우에 따라서는 run-time도 발생할 수 있는 위험한 상황임.
+  C언어에서는 warning으로 끝냄. C++의 경우에는 SE로 처리.
+
+------------------------------------------------------------------------------------------------------------
+다시 돌아가서,
+up-casting은 해석상의 문제도 없고 dangling 포인터도 발생하지 않음. 
+--> 안전한 상황으로 판단하고 묵시적 타입변환을 허용함.
+
+p10
+x,y도 vec3에 포함관계에 있음.
+vec3는 vec2의 private은 참조 불가능. --> base class:: 을 사용
+sum 함수가 overriding됨.
+
+vec2* p2 = &v3;		//up-casting
+p1은 참조타입이 vec2이므로 vec2를 가리키고 있음.
+p3은 참조타입이 vec3이므로 vec3를 가리키고 있음.
+
+p11
+위를 그림으로 나타냄.
+p2는 v3안에 있는 vec2를 가리킴.		//up-casting 
+전체는 v3를 가리키고 있는데 정확히는 vec2를 가리키는 것임.
+(비유) 교수님의 타입이 심장*이라면 성국이를 가리키긴하는데 정확히 따져보면 성국이의 심장을 가리키는 것임.
+
+1) p1->sum();		// p1으로 sum 함수를 호출.
+(해설)
+v2.sum() == sum(&v2) --> v2.x + v2.y
+p1->v2;
+p1->sum() == (*p1).sum() == sum(&(*p1)) == sum(p1) --> p1->x + p1->y
+
+
+2) p3->v3
+v3.sum() == sum(&v3) --> v3.x + v3.y + v3.z 	// 이 때의 sum은 두번째 sum함수가 호출됨
+p3->sum() == (*p3).sum() == sum(p3) --> p3->x + p3->y + p3->z
+
+
+3) p2 --> (v3의 vec2 부분)
+(*p2).sum() --> (*p2).vec2_sum()
+p2->sum()   --> p2->vec2_sum()
+sum(p2)    --> 
+
+===========================================================================================================
+이 코드는 중요함. 100% 이해할 것.
+#include <iostream>
+
+using namespace std;
+
+class vec2{
+	int x,y;
+public:
+	vec2(int _x, int _y): x(_x), y(_y){}
+	int sum(void) const {return x+y;}
+};
+
+class vec3:public vec2{
+	int z;
+public:
+	vec3(int _x, int _y, int _z)
+		: vec2(_x,_y), z(_z) {}
+	int sum(void) const {return vec2::sum() + z;}
+};
+
+int main(void)
+{
+	vec2 v2(11,22);
+	vec3 v3(111, 222,333);
+	vec2* p1 = &v2;
+	vec2* p2 = &v3;
+	vec2* p3 = &v3;
+	cout << p1->sum() << endl;
+	cout << p2->sum() << endl;
+	cout << p3->sum() << endl;
+	return 0;
+}
+-----------------------------------------------------------------------
+C언어로 전환
+#include <stdio.h>
+
+struct vec2{
+	int x,y;
+};
+
+struct vec2* vec2_vec2(struct vec2* this, int _x, int _y)
+{
+	this->x = _x;
+	this->y = _y;
+	return this;
+}
+
+int vec2_sum(const struct vec2* this)
+{
+	return this->x + this->y;
+}
+
+struct vec3{
+	int x,y;
+	int z;
+};
+
+struct vec3* vec3_vec3(struct vec3* this, int _x, int _y, int _z)
+{
+	vec2_vec2((struct vec2*)this,_x,_y);
+	this->z = _z;
+	return this;
+}
+
+int vec3_sum(const struct vec3* this)
+{
+	return vec2_sum((const struct vec2*)this) + this->z;
+}
+
+int main(void)
+{
+	struct vec2 v2;
+	struct vec3 v3;
+	struct vec2* p1 = &v2;
+	struct vec2* p2 = (struct vec2*)&v3;
+	struct vec3* p3 = &v3;
+	
+	vec2_vec2(&v2,11,22);	
+	vec3_vec3(&v3,111, 222,333);
+	
+	printf("%d\n", vec2_sum(p1));
+	printf("%d\n", vec2_sum(p2));
+	printf("%d\n", vec3_sum(p3));
+	return 0;
+}
+
+[가상함수]
+virtual을 안쓰면 vec2를 가리키는거니까 vec2_sum이 호출되는데,
+virtual을 쓰면 vec3_sum이 호출됨. (실제 가리키는 대상이 vec3에 있는 vec2이기 때문에)
+즉, 참조 타입이 중요한 것이 아니고 실제 가리키는 본질이 중요한 것임.
+(비유) 성국이의 심장을 가리키지만 성국이를 가리키는 것을 중요하게 생각함.
+C++는 virtual을 쓰는 것, 아닌 것 둘 다 지원함.
+
+가상함수는 실제 함수 포인터임.
+sum 함수 두 개 중에 하나로 초기화 되어 있을 것이다.
+#include <iostream>
+
+using namespace std;
+
+class vec2{
+	int x,y;
+public:
+	vec2(int _x, int _y): x(_x), y(_y){}
+	int sum(void) const {return x+y;}
+};
+
+class vec3:public vec2{
+	int z;
+public:
+	vec3(int _x, int _y, int _z)
+		: vec2(_x,_y), z(_z) {}
+	int sum(void) const {return vec2::sum() + z;}
+};
+
+int main(void)
+{
+	vec2 v2(11,22);
+	vec3 v3(111, 222,333);
+	vec2* p1 = &v2;
+	vec2* p2 = &v3;
+	vec3* p3 = &v3;
+	cout << p1->sum() << endl;
+	cout << p2->sum() << endl;
+	cout << p3->sum() << endl;
+	return 0;
+}
+
+virtual함수는 실제로 함수 포인터이기 때문에 vec2에는 x, y, 포인터까지 변수가 세개가 있음. 
+sizeof로 확인해보면 알 수 있음.  sizeof(v2) == 12 sizeof(v3) == 16
+만약, virtual이 없다면, sizeof(v2) == 8, sizeof(v3) == 12
+----------------------------------------------------------------------
+C언어로 전환하는 거 과제!
+
+
+p16
+레퍼런스를 사용. 
+그렇지만 포인터로 보여야함. 똑같음.
+
+
+p18
+Derived Class으로의 타입 변환
+메모리 구조를 그려볼 것.
+
+down-casting : Base class*에서 Derived class*로의 타입 캐스팅. UNSAFE
+
+vec3* p3 = (vec3*) p1;	// down-casting 
+부분적으로 할당 안된 메모리영역을 가리킴 --> 부분적 dangling pointer 
+: RE의 발생 가능, 가능성은 낮음. 발견 확률이 낮은 매우 위험한 에러임.
+문제가 생길 수도 있고 아닐수도 있음. 프로그래머가 문제가 생길지 아닐지 철저히 점검해봐야함. 
+타입캐스팅을 명시적으로 하지 않으면 C++에서는 SE로 처리. (C언어는 warning으로 끝냄)
+그러나, 명시적으로 했다고 해도 바람직하진 않음.
+
+#include <iostream>
+
+using namespace std;
+
+class vec2{
+	int x,y;
+public:
+	vec2(int _x, int _y): x(_x), y(_y){}
+	int sum(void) const {return x+y;}
+};
+
+class vec3:public vec2{
+	int z;
+public:
+	vec3(int _x, int _y, int _z)
+		: vec2(_x,_y), z(_z) {}
+	int sum(void) const {return vec2::sum() + z;}
+};
+
+int main(void)
+{
+	vec2 v2(1,2);
+	vec3 v3(1,2,3);
+	
+	vec2* p1 = &v2;
+	vec2* p2 = &v3;
+	vec3* p3 = (vec3*)p1;		// RE의 위험성이 존재함
+	vec3* p4 = (vec3*)p2;
+	cout << p3->sum() << endl;
+	cout << p4->sum() << endl;
+	return 0;
+}
+
+[Pure Virtual Function]
+어떤 함수도 가리키고 있지 않은 함수 포인터. NULL로 초기화된 함수 포인터.
+당연히 초기화만 되어 있는 상태로 함수 호출하게 되면 RE
+
+p20
+Abstract Class : 이러한 pure virtual function을 포함하고 있는 Class.
+
+derived1은 아직 overriding안된 g함수가 존재하므로 Abstract Class
+derived2는 모두 pure virtual function이 overriding이 되었으므로 Concrete Clss. // 완성된 클래스.
+Abstract Class로 객체를 만드는 것은 불가하다. (RE를 예방하기 위함)
+
+< 이해의 흐름 > 
+Virtual Function  -->  Pure Virtual Function  -->  Abstract Class
+*Abstract Class : up-casting용으로 사용됨. 객체 만드는 것은 허용되지 않지만 포인터나 레퍼런스 만드는데는 허용됨.
+
+
+[Polymorphism]
+
+# 서론
+객체지향은 복잡한 것을 단순하게 보이도록 하는 것.
+상속을 통해 공통적인것을 보이게 함으로써 단순하게 보이게 함.
+그런데 공통부분이 있다고해도 각각은 다다름. 이것에 대해 디테일한 처리를 해주지 않으면 복잡한 것을 단순하게 만든 것임.
+단순하게 만드는 것은 객체지향이 아님. 그러므로 디테일한 처리를 해주어야 함.
+이 디테일 한 부분을 감춘다. : common processing --> 다형성(Polymorphism)
+
+객체지향은 소프트웨어의 기능을 추가하고 유지보수를 손쉽게 하는 것이 궁극적인 목적임.
+
+새로운 유형의 데이터에 대한 처리,,,,?
+공통적인 틀로 묶어서 인지함. 단, 디테일한 부분도 있어야 함.
+
+(비유)
+남자든 여자든 장애학생이든 어린아이든 화장실에 가고 싶다고 손을 들면 일관되게 갔다오라고 함 --> common processing
+수업을 듣기전 케이스에 따라 어느 화장실에 가야 하는지 설명서를 배포하고 각 케이스는 그걸 숙지하고 있음. --> detail processing.
+새로운 유형의 데이터가 들어온다 한들 detail processing을 가지고 들어옴.
+실제로는 다양한 데이터들을 다루는 복잡한 상황인데, 한 종류의 데이터를 다루는 간단한 상황으로 인지.
+==> Polymorphism
+
+p30 
+Polymorphism을 구현한 코드
+처리할 때는 그냥 sum하라고 일괄적으로 처리해버림. 				// common processing
+virtual이 있음. 실제 가리키는 대상에 따라 x+y를 수행하거나, x+y+z를 수행함. 	// detail processing
+
+< Polymorphism을 구현하기 위해 사용되어야 할 것들 >
+1) Inheritance
+2) Overriding
+3) Virtual Function
+--> 2) & 3)은 polymorphism을 지원하기 위해서 등장한 개념.
+(셋 중 하나만이 다형성을 구현하는데 사용되는 것이 아님)
+
+p22
+32bits 컴퓨터 기준.(sizeof(pointer) == 4bytes)
+함수 포인터인 virtual가 존재하기 때문에 4바이트가 아닌 8바이트가 출력됨.
+
+#include <iostream>
+
+using namespace std;
+
+class base{
+	int a;
+public:
+	base(void):  a() {}
+	virtual void f(void) const{
+		cout << "base::f()" << endl;
+	}
+};
+
+class derived: public base{
+	int c;
+public:
+	derived(void): base(), c() {}
+	void f(void) const{
+		cout << "derived::f()" << endl;
+	}
+};
+
+int main(void)
+{
+	base b;
+	derived d;
+	base* p;
+	base* q;
+	
+	p = &b;
+	q = &d;
+	
+	p->f();
+	q->f();
+	return 0;
+}
+
+p와 q 둘다 base를 가리킴에도 불구하고 virtual함수로 인해서 실제 가리키는 대상을 가리킴.
+그래서 p는 base를 , q는 derived를 가리키는 것으로 결과확인할 수 있음.
+----------------------------------------------------------------------------------------
+< C언어로 전환 >
+
+#include <stdio.h>
+
+typedef void (*FP)(const void*);
+
+struct base{
+	int a;
+	FP f;
+};
+void base_f(const struct base* this);
+
+struct base* base_base(struct base* this)
+{
+	this->a = 0;
+	this->f = (FP)base_f;
+	return this;
+}
+
+void base_f(const struct base* this)
+{
+	printf("base::f()\n");
+}
+
+struct derived{
+	int a;
+	FP f;
+	int c;
+};
+void derived_f(const struct derived* this);
+
+struct derived* derived_derived(struct derived* this)
+{
+	base_base((struct base*)this);
+	this->f = (FP)derived_f;
+	this->c = 0;
+}
+
+void derived_f(const struct derived* this)
+{
+	printf("derived::f()\n");
+}
+
+int main(void)
+{
+	struct base b;
+	struct derived d;
+	
+	struct base* p;
+	struct base* q;
+	
+	base_base(&b);
+	derived_derived(&d);
+	
+	p = &b;
+	q = (struct base*)&d;	// up-casting
+	
+	p->f(&*p);
+	q->f(&*q);
+	return 0;
+}
+
+
+
+
+
